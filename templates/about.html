@@ -1,0 +1,323 @@
+<!--
+Page:
+	About
+Path:
+	/about.html
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex" />
+
+    <title>Roomies</title>
+    <!--Links/includes-->
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='/assets/icon.png') }}"
+      type="image/x-icon"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='/styles/bootstrap.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+      integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='/styles/style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='/styles/about.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='/styles/footer.css') }}"
+    />
+  </head>
+
+  <body>
+    <nav class="navbar spnav navbar-expand-lg navbar-light">
+      <a class="navbar-brand" href="/">
+        <img
+          src="{{ url_for('static', filename='/assets/icon.png') }}"
+          src="site logo"
+          height="100"
+        />
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#mainNavItems"
+        aria-controls="mainNavItems"
+        aria-label="Toggle main menu"
+        aria-expanded="false"
+      >
+        <i class="fa fa-bars"></i>
+      </button>
+      <div class="collapse navbar-collapse ml-auto" id="mainNavItems">
+        <div class="ml-auto navbar-nav nav">
+          <div class="ml-auto navbar-nav nav">
+            {% if not session.get('user') %}
+                  <a class="nav-item nav-link mx-1" href="/">
+                            Home
+                  </a> 
+            {% endif %}
+            <a
+              class="nav-item nav-link mx-lg-2 mx-1 active"
+              href="/whyroommatefinder"
+            >
+              Why Roomies?
+            </a>
+            {% if session.get('user') %}
+                  <a class="nav-item nav-link mx-1" href="/profile"> Profile </a>
+            {% endif %}
+        
+            <a class="nav-item nav-link mx-1" href="/support"> Support </a>
+            <a
+              class="nav-item nav-link mx-1"
+              href="/support"
+              onclick="scrollToFooter()"
+            >
+              Contact Us
+            </a>
+            {% if session.get('user') %}
+                            {% if session['user']['username'] in admin_users %}
+                                <a class="nav-item nav-link mx-1" href="/admin">
+                                    Admin
+                                </a>
+                            {% endif %}
+                        {% endif %}
+            {% if session.get('user') %}
+            <a class="nav-item nav-link mx-1" href="/dashboard">
+              Dashboard
+          </a>
+            <a class="mx-1 btn btn-outline-danger auth-only" id="logoutBtn" href="/logout">
+              Log Out
+          </a>
+          {% endif %}
+
+            {% if not session.get('user') %}
+            <button class="mx-1 btn btn-outline-purple no-auth login-btn" id='log-in' href="/login">
+              Log In
+          </button>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </nav>
+    <br>
+    <main class="container">
+      <p class="h1 text-center">About Roomies</p>
+
+      <section>
+        <h2>Our Vision</h2>
+        <p>
+          At ROOMIES, we envision a future where finding the perfect roommate is
+          not only effortless but also enhances your living experience. Our goal
+          is to revolutionize the roommate-finding landscape by incorporating
+          modern technologies and innovative features into our platform.
+        </p>
+      </section>
+
+      <section>
+        <h2>Key Features of ROOMIES</h2>
+        <div class="feature-container">
+          <div class="feature-image">
+            <img
+              src="{{ url_for('static', filename='/assets/recoalgo.png') }}"
+              alt="Recommendation Algorithm Image"
+            />
+          </div>
+          <div class="feature-content">
+            <h2>Advanced Recommendation Algorithm</h2>
+            <p>
+              Our platform utilizes cutting-edge machine learning-based
+              recommendation algorithms. By meticulously analyzing user
+              profiles, preferences, and lifestyle factors, we provide highly
+              accurate roommate suggestions.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-container">
+          <div class="feature-image">
+            <img
+              src="{{ url_for('static', filename='/assets/privacy.jpg') }}"
+              alt="Privacy and Security Image"
+            />
+          </div>
+          <div class="feature-content">
+            <h2>Enhanced Privacy and Security</h2>
+            <p>
+              Your safety and privacy are our top priorities. ROOMIES implements
+              robust security measures, including CAPTCHA during login to
+              prevent unauthorized access. We employ face detection technology
+              for profile pictures to avoid catfishing, and our in-app messaging
+              platform ensures seamless communication with potential roommates
+              without revealing personal contact details.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-container">
+          <div class="feature-image">
+            <img
+              src="{{ url_for('static', filename='/assets/ui.jpg') }}"
+              alt="User-Friendly Interface Image"
+            />
+          </div>
+          <div class="feature-content">
+            <h2>User-Friendly Interface</h2>
+            <p>
+              Understanding the importance of a smooth user experience, ROOMIES
+              boasts an intuitive and responsive interface. Whether you're
+              creating or managing your profile, our website ensures a seamless
+              experience across various devices. The roommate-matching process
+              is designed to be straightforward and efficient.
+            </p>
+          </div>
+        </div>
+
+        <div class="feature-container">
+          <div class="feature-image">
+            <img
+              src="{{ url_for('static', filename='/assets/feedback.jpg') }}"
+              alt="Feedback and Continuous Improvement Image"
+            />
+          </div>
+          <div class="feature-content">
+            <h2>Feedback and Continuous Improvement</h2>
+            <p>
+              We are dedicated to continuous enhancement. Actively collecting
+              user feedback, we use valuable insights to refine our
+              recommendation algorithms and elevate the overall user experience.
+              Our commitment is to adapt and improve continually, catering to
+              the evolving needs of our users.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+  <footer class="footer-area">
+    <div class="footer-wave-box">
+        <div class="footer-wave footer-animation"></div>
+    </div>
+    <div class="main">
+        {% if session.get('user') %}
+        <div class="footer" id="logged-in-footer">
+            <div class="single-footer">
+                <h4>Menu</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><a href="/dashboard"><i class="fas fa-angle-right"></i> Dashboard</a></li>
+                    <li><a href="/profile"><i class="fas fa-angle-right"></i> Profile</a></li>
+                    <li><a href="/dashboard"><i class="fas fa-angle-right"></i> Chat</a></li>
+                    <li><a href="/dashboard"><i class="fas fa-angle-right"></i> Liked Profiles</a></li>
+                </ul>
+            </div>
+            <div class="single-footer">
+                <h4>Links</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><a href="/home"><i class="fas fa-angle-right"></i> Home</a></li>
+                    <li><a href="/about"><i class="fas fa-angle-right"></i> Why Roomies</a></li>
+                    <li><a href="/support"><i class="fas fa-angle-right"></i> Support</a></li>
+                    <li><a href="/about"><i class="fas fa-angle-right"></i> Contact Us</a></li>
+                    <li><a href="/terms"><i class="fas fa-angle-right"></i> Terms & Conditions</a></li>
+                </ul>
+            </div>
+            <div class="single-footer">
+                <h4>Contact Us</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><a href=""><i class="fas fa-map-marker-alt"></i> KJ Somaiya College Of Engineering, Vidyanagar, Vidyavihar 400605</a></li>
+                    <li><a href=""><i class="fas fa-mobile-alt"></i> +91 7977199113</a></li>
+                    <li><a href=""><i class="fas fa-envelope"></i> contact@roomies.com</a></li>
+                    <li><a href=""><i class="fas fa-globe"></i> www.roomies.com</a></li>
+                </ul>
+            </div>
+            <div class="single-footer">
+                <h4>Maps</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="text-align: right;">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3770.7927659956576!2d72.8973512749772!3d19.072846982131143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c627a20bcaa9%3A0xb2fd3bcfeac0052a!2sK.%20J.%20Somaiya%20College%20of%20Engineering!5e0!3m2!1sen!2sin!4v1712038182335!5m2!1sen!2sin" width="300" height="155" style="border: 20;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <!-- For Not Logged In Users -->
+        <div class="footer" id="not-logged-in-footer">
+            <div class="single-footer">
+                <h4>Menu</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><a href="/home"><i class="fas fa-angle-right"></i> Home</a></li>
+                    <li><a href="/about"><i class="fas fa-angle-right"></i> Why Roomies</a></li>
+                    <li><a href="/support"><i class="fas fa-angle-right"></i> Support</a></li>
+                    <li><a href="/about"><i class="fas fa-angle-right"></i> Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="single-footer">
+                <h4>Links</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><a href="/about"><i class="fas fa-angle-right"></i> Contact Us</a></li>
+                    <li><a href="/terms"><i class="fas fa-angle-right"></i> Terms & Conditions</a></li>
+                </ul>
+            </div>
+            <div class="single-footer">
+                <h4>Contact Us</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li><a href=""><i class="fas fa-map-marker-alt"></i> KJ Somaiya College Of Engineering, Vidyanagar, Vidyavihar 400605</a></li>
+                    <li><a href=""><i class="fas fa-mobile-alt"></i> +91 9397165725</a></li>
+                    <li><a href=""><i class="fas fa-envelope"></i> contact@roomies.com</a></li>
+                    <li><a href=""><i class="fas fa-globe"></i> www.roomies.com</a></li>
+                </ul>
+            </div>
+            <div class="single-footer">
+                <h4>Maps</h4>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="text-align: right;">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3770.7927659956576!2d72.8973512749772!3d19.072846982131143!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c627a20bcaa9%3A0xb2fd3bcfeac0052a!2sK.%20J.%20Somaiya%20College%20of%20Engineering!5e0!3m2!1sen!2sin!4v1712038182335!5m2!1sen!2sin" width="300" height="155" style="border: 20;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        <div class="copy">
+            <p>&copy; Roomies | All rights reserved | 2024 </p>
+        </div>
+    </div>
+</footer>
+  <script
+    src="https://code.jquery.com/jquery-3.6.4.slim.min.js"
+    integrity="sha384-GLhlTQ8iKHEo7RY/RykD/xTk9SJ0Dl/6ZI99VF5ceEAAbFpi6Rv4r+7L3UqFvuci"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"
+  ></script>
+  <!-- <script src="C:\roomies\ROOMIES\public\static\scripts\bootstrap.min.js"></script> -->
+
+  <script>
+    function scrollToFooter() {
+      var footer = document.querySelector("footer");
+      footer.scrollIntoView({ behavior: "smooth" });
+    }
+  </script>
+  <script>
+    document.getElementById('log-in').addEventListener('click', function() {
+        window.location.href = '/login';  
+    });
+  </script>
+</html>
