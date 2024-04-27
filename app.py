@@ -18,33 +18,16 @@ import pytz
 from algorithm.getRecommendations import get_recommendations
 from dotenv import load_dotenv
 import os
-import tempfile
 import json
 
 
 load_dotenv()
-admin_cred_json = os.getenv("FIREBASE_ADMIN_CREDENTIALS_JSON")
-print("Firebase Admin Credentials JSON:", admin_cred_json)
-
-
-with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
-    # Write the JSON string to the file
-    temp_file.write(admin_cred_json)
-    # Ensure the file pointer is at the beginning before reading
-    temp_file.flush()
-    temp_file.seek(0)
-
-# Read and verify the JSON data
-with open(temp_file.name, 'r') as f:
-    json_data = f.read()
-    print("JSON Data in Temporary File:", json_data)  # Should contain your JSON content
-
-    # Try parsing the JSON to ensure it's valid
-    parsed_json = json.loads(json_data)
 
 
 app = Flask(__name__)
+
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
+
 firebase_web_config = {
     'apiKey': os.getenv('FIREBASE_API_KEY'),
     'authDomain': os.getenv('FIREBASE_AUTH_DOMAIN'),
@@ -56,11 +39,17 @@ firebase_web_config = {
     'databaseURL': os.getenv('FIREBASE_DATABASE_URL')
 }
 
+admin_cred_json = os.getenv("FIREBASE_ADMIN_CREDENTIALS_JSON")
 
-cred = credentials.Certificate(temp_file_path)
-firebase_admin.initialize_app(cred)
+# Print the received JSON string (optional)
 
-# Clean up (optional, to avoid leaving temporary files behind)
+# Parse the JSON string into a Python dictionary
+admin_cred_dict = json.loads(admin_cred_json)
+
+# Initialize Firebase Admin with the parsed credentials
+cred = credentials.Certificate(admin_cred_dict)
+firebase_admin.initialize_app(cred, {'storageBucket': 'roomies-166f5.appspot.com'})
+   
 
 db = firestore.client()  # Firestore client
 bucket = storage.bucket()  # Storage bucket
@@ -69,7 +58,7 @@ auth = firebase_web_config  # Firebase Web authentication configuration
 firebase = pyrebase.initialize_app(firebase_web_config)
 storage = firebase.storage
 auth = firebase.auth()
-os.remove(temp_file_path)
+
 
 app.config.update(dict(
     MAIL_SERVER=os.getenv('MAIL_SERVER'),
@@ -137,7 +126,7 @@ def verify_recaptcha(token):
     api_url = 'https://www.google.com/recaptcha/api/siteverify'
     
     response = requests.post(api_url, {
-        'secret': key,
+        'secret': os.getenv('RECAPTCHA_SECRET_KEY'),
         'response': token
     })
 
