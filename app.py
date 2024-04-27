@@ -1,7 +1,6 @@
-from common.firebase import db, bucket, firebase_web_config
-from common.email_creds import email, password
-from common.captchaKey import key
+import firebase_admin
 from firebase_admin import auth, firestore
+from firebase_admin import credentials, firestore, storage
 from flask import Flask, jsonify, render_template, request, redirect, url_for,session
 import pyrebase
 import requests
@@ -15,23 +14,45 @@ import numpy as np
 import pandas as pd
 import time
 from datetime import datetime
+import pytz
 from algorithm.getRecommendations import get_recommendations
+from dotenv import load_dotenv
+import os
 
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'roomies' 
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+firebase_web_config = {
+    'apiKey': os.getenv('FIREBASE_API_KEY'),
+    'authDomain': os.getenv('FIREBASE_AUTH_DOMAIN'),
+    'projectId': os.getenv('FIREBASE_PROJECT_ID'),
+    'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET'),
+    'messagingSenderId': os.getenv('FIREBASE_MESSAGING_SENDER_ID'),
+    'appId': os.getenv('FIREBASE_APP_ID'),
+    'measurementId': os.getenv('FIREBASE_MEASUREMENT_ID'),
+    'databaseURL': os.getenv('FIREBASE_DATABASE_URL')
+}
+admin_cred_json = os.getenv('FIREBASE_ADMIN_CREDENTIALS_JSON')
+cred = credentials.Certificate(admin_cred_json)  # Admin credentials from environment
+firebase_admin.initialize_app(cred, {'storageBucket': firebase_web_config['storageBucket']})
+db = firestore.client()  # Firestore client
+bucket = storage.bucket()  # Storage bucket
+auth = firebase_web_config  # Firebase Web authentication configuration
+
 firebase = pyrebase.initialize_app(firebase_web_config)
 storage = firebase.storage
-auth = firebase.auth()  
+auth = firebase.auth()
+
 
 app.config.update(dict(
-    DEBUG = True,
-    MAIL_SERVER = 'smtp.gmail.com',
-    MAIL_PORT = 587,
-    MAIL_USE_TLS = True,
-    MAIL_USE_SSL = False,
-    MAIL_USERNAME = email,
-    MAIL_PASSWORD = password,
+    MAIL_SERVER=os.getenv('MAIL_SERVER'),
+    MAIL_PORT=int(os.getenv('MAIL_PORT')),
+    MAIL_USE_TLS=os.getenv('MAIL_USE_TLS') == 'True',  # Convert to boolean
+    MAIL_USE_SSL=os.getenv('MAIL_USE_SSL') == 'True',  # Convert to boolean
+    MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
 ))
 mail = Mail(app)
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -535,6 +556,7 @@ def welcome():
         except Exception as e:
             print('Error fetching user data or invalid credentials:', e)
             return render_template('index2.html', error='Invalid credentials')
+ 
 
 def login_required(f):
     @wraps(f)
@@ -712,8 +734,60 @@ def profiles(username):
 def update_listed_status():
     user_id = session['user']['username']
     listed_status = request.json.get('listed', 0)
+    local_timezone = pytz.timezone('Asia/Kolkata')
+    local_time = datetime.now(local_timezone)
     db.collection('RoommatePreferences').document(user_id).update({'Listed': listed_status})
+    if listed_status == 1:
+        db.collection('RoommatePreferences').document(user_id).update({'ListedTimestamp': local_time})
+    else:
+        db.collection('RoommatePreferences').document(user_id).update({'ListedTimestamp': None})
     return jsonify({'success': True}), 200
+
+@app.route('/compare')
+def compare():
+    username = request.args.get('username')
+    user_info = session.get('user')
+
+    email_ref = db.collection('Users').document(username)
+    user_data = email_ref.get()
+    if user_data.exists:
+        compare_email = user_data.to_dict().get('Email')
+
+    if user_info:
+        user_email = user_info.get('email')
+        user_username = user_info.get('username')
+    
+    profile_picture_path1 = f"Profile Photo/dpimage_{user_username}.jpg"
+    profile_picture_path2 = f"Profile Photo/dpimage_{username}.jpg"
+
+    profile_picture_url1 = get_profile_picture_url(profile_picture_path1)
+    profile_picture_url2 = get_profile_picture_url(profile_picture_path2)
+
+    if profile_picture_url1 and profile_picture_url2:
+        profile_picture_url1 += f"?t={int(time.time())}"
+        profile_picture_url2 += f"?t={int(time.time())}"
+    
+
+    user_preferences1 = get_user_preferences(user_email)
+    user_preferences2 = get_user_preferences(compare_email)
+
+    attributes_to_compare = ['Age', 'Gender', 'Profession', 'Religion', 'Habits', 'FoodPreference', 'SleepSchedule', 'PetFriendliness']
+
+    comparison_results = {}
+
+    for attribute in attributes_to_compare:
+        # Get attribute values for both users
+        user_value = user_preferences1.get(attribute)
+        compare_value = user_preferences2.get(attribute)
+
+        # Perform comparison
+        if user_value == compare_value:
+            comparison_results[attribute] = True  # Match
+        else:
+            comparison_results[attribute] = False
+
+    return render_template('compare.html', comparison_results=comparison_results,user_preferences1=user_preferences1,user_preferences2=user_preferences2)
+
 
 @app.route('/like', methods=['POST'])
 @login_required
@@ -869,3 +943,5 @@ def report():
     # Perform actions specific to the support page for GET requests
     return render_template('report.html',admin_users=admin_users)
 
+if __name__ == '__main__':
+    app.run(debug=True)

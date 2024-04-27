@@ -66,13 +66,6 @@
           <a class="nav-item nav-link mx-1" id="support-btn" href="/support">
             Support
           </a>
-          <a
-            class="nav-item nav-link mx-1"
-            href="/support"
-            onclick="scrollToFooter()"
-          >
-            Contact Us
-          </a>
           {% if session.get('user') %} {% if session['user']['username'] in
           admin_users %}
           <a class="nav-item nav-link mx-1" href="/admin"> Admin </a>
@@ -119,6 +112,7 @@
               <th>Profile</th>
               <th>Match Score</th>
               <th>Chat</th>
+              <th>Compare</th>
               <th>Like</th>
             </tr>
           </thead>
@@ -148,8 +142,11 @@
               </td>
               <td>{{ recommendation['MatchPercentage'] }}</td>
               <td>
-                <button class="btn chat-btn liked mx-1 btn btn-outline-danger" data-username="{{ recommendation['Username'] }}">Chat</button>
+                <button class="btn chat-btn mx-1 btn btn-outline-danger" data-username="{{ recommendation['Username'] }}">Chat</button>
             </td>
+            <td>
+              <button class="btn compare-btn mx-1 btn btn-outline-danger" data-username="{{ recommendation['Username'] }}">Compare</button>
+            </td>            
               <td>
                 {% if liked %}
                 <button
@@ -191,6 +188,15 @@
           window.location.href = "/support";
         });
     </script>
+    <script>// Add event listener for compare button
+      document.querySelectorAll(".compare-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var username = this.dataset.username;
+          // Redirect to the comparison page with the username as a query parameter
+          window.location.href = "/compare?username=" + encodeURIComponent(username);
+        });
+      });
+      </script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Check if liked users are already stored in local storage
