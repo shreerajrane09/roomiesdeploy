@@ -16,6 +16,7 @@ import time
 from datetime import datetime
 import pytz
 from algorithm.getRecommendations import get_recommendations
+import re
 from dotenv import load_dotenv
 import os
 import json
@@ -201,7 +202,7 @@ def signup1():
     phone_number = request.form.get('phone')
     # age = request.form.get('age')
     birthdate_str = request.form.get('birthdate')
-    gender = request.form.get('Gender')
+    gender = request.form.get('gender')
 
     try:
         birthdate = datetime.strptime(birthdate_str, '%Y-%m-%d')
@@ -630,6 +631,28 @@ def admin():
 
     return render_template('admin_dashboard.html', preferences_count=preferences_count,users_count=users_count,queries_count=queries_count,reports_count=reports_count,queries_data=queries_data,reports_data=reports_data,admin_users=admin_users)
 
+@app.route('/resolve_query', methods=['POST'])
+def resolve_query():
+    data = request.json
+    query_id = data.get('queryId')
+
+    doc = db.collection('UserQueries').document(str(query_id))
+    doc.update({"Resolved":1})
+   
+
+    return jsonify({'message': 'Query resolved successfully'})
+
+@app.route('/resolve_report', methods=['POST'])
+def resolve_report():
+    data = request.json
+    report_id = data.get('reportId')
+
+    doc = db.collection('Reports').document(str(report_id))
+    doc.update({"Resolved":1})
+   
+
+    return jsonify({'message': 'Report resolved successfully'})
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -681,6 +704,14 @@ def dashboard():
                     profile_picture_url = "https://firebasestorage.googleapis.com/v0/b/roomies-166f5.appspot.com/o/Profile%20Photo%2Favatar.jpg?alt=media&token=bf819735-cee1-400a-ad30-0d7063d473ab"
                 profile_picture_urls.append(profile_picture_url)
 
+        user_info_login = session.get('user', {})
+        
+        user_info_login.update({
+        'recommendations_dashboard': recommendations_dashboard,
+        })
+        
+        session['user'] = user_info_login
+
         admin_users = get_admin_users()
 
         return render_template('dashboard.html', user_email=user_email, recommendations_dashboard=recommendations_dashboard, profile_picture_urls=profile_picture_urls,admin_users=admin_users)
@@ -688,11 +719,34 @@ def dashboard():
         return redirect(url_for('index'))
     
 @app.route('/chat', methods=['GET'])
+@login_required
 def chatroom():
     username = request.args.get('user')
     current_username = session["user"]["username"]  # Get the username from the query parameter
     # Now you can render your chatroom template with the username
     return render_template('chatroom.html', username=username,current_username=current_username)
+
+@app.route('/search_users', methods=['GET','POST'])
+@login_required
+def search_users():
+
+    search_query = request.args.get('query')
+    # search_query_lower = search_query.lower()
+
+    pattern = re.compile(f'.*{re.escape(search_query)}.*')
+
+
+    users_ref = db.collection('RoommatePreferences')
+    query = users_ref.where(filter=FieldFilter('Username', '>=', search_query)).where(filter=FieldFilter('Username', '<=', search_query+ u'\uf8ff')).limit(10).stream()
+
+    # matching_users = []
+    # for doc in query:
+    #     matching_users.append(doc.to_dict().get('Username'))
+
+    matching_users = [doc.to_dict().get('Username') for doc in query if pattern.match(doc.to_dict().get('Username'))]
+    print(matching_users)
+    
+    return jsonify({'matching_users': matching_users})
 
     
 @app.route('/profile')
@@ -745,6 +799,7 @@ def profiles(username):
         return "User profile not found", 404
     
 @app.route('/update_listed_status', methods=['POST'])
+@login_required
 def update_listed_status():
     user_id = session['user']['username']
     listed_status = request.json.get('listed', 0)
@@ -758,14 +813,15 @@ def update_listed_status():
     return jsonify({'success': True}), 200
 
 @app.route('/compare')
+@login_required
 def compare():
     username = request.args.get('username')
     user_info = session.get('user')
 
-    email_ref = db.collection('Users').document(username)
-    user_data = email_ref.get()
+    compare_ref = db.collection('RoommatePreferences').document(username)
+    user_data = compare_ref.get()
     if user_data.exists:
-        compare_email = user_data.to_dict().get('Email')
+        compare_data = user_data.to_dict()
 
     if user_info:
         user_email = user_info.get('email')
@@ -783,7 +839,8 @@ def compare():
     
 
     user_preferences1 = get_user_preferences(user_email)
-    user_preferences2 = get_user_preferences(compare_email)
+    user_preferences2 = compare_data
+
 
     attributes_to_compare = ['Age', 'Gender', 'Profession', 'Religion', 'Habits', 'FoodPreference', 'SleepSchedule', 'PetFriendliness']
 
@@ -842,6 +899,56 @@ def get_liked_users():
 
     return jsonify({'liked_users': liked_users})
 
+# @app.route('/liked')
+# @login_required
+# def get_liked():
+#     # Get the currently logged-in user's username
+#     user_info = session.get('user')
+#     user_username = user_info.get('username')
+
+#     # Retrieve the document snapshot for the user
+#     user_ref = db.collection('RoommatePreferences').document(user_username)
+#     user_snapshot = user_ref.get()
+
+#     # Extract the 'Liked' field from the document snapshot
+#     liked_users = user_snapshot.to_dict().get('Liked', [])
+
+#     # Render the liked_users.html template and pass the liked users to it
+#     return render_template('liked.html', liked_users=liked_users)
+
+@app.route('/liked')
+@login_required
+def get_liked():
+    # Get the currently logged-in user's username
+    user_info = session.get('user')
+    user_username = user_info.get('username')
+
+    # Retrieve the document snapshot for the user
+    user_ref = db.collection('RoommatePreferences').document(user_username)
+    user_snapshot = user_ref.get()
+
+    # Extract the 'Liked' field from the document snapshot
+    liked_users = user_snapshot.to_dict().get('Liked', [])
+
+
+    # Initialize a list to store matching recommendations_dashboard
+    matched_recommendations = []
+
+    # Retrieve recommendations_dashboard from session
+    recommendations_dashboard = user_info.get('recommendations_dashboard', [])
+
+
+    for liked_user in liked_users:
+        # Check if liked user exists in recommendations_dashboard
+        for recommendation in recommendations_dashboard:
+            if recommendation['Username'] == liked_user:
+                matched_recommendations.append(recommendation)
+                break 
+
+    # Render the liked_users.html template and pass the matched recommendations to it
+    return render_template('liked.html', matched_recommendations=matched_recommendations)
+
+
 @app.route('/update_preferences', methods=['POST'])
 @login_required
 def update_preferences():
@@ -881,6 +988,7 @@ def delete_account():
         return redirect(url_for('profile'))
 
 @app.route('/logout')
+@login_required
 def logout():
     session.pop('user', None)
     return redirect(url_for('index'))
@@ -894,6 +1002,15 @@ def support():
         detail = request.form.get('detail')
         image = request.files['image'] if 'image' in request.files else None
 
+        latest_query = db.collection('UserQueries').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(1).stream()
+        
+        latest_id = 0
+        for doc in latest_query:
+            latest_id = doc.to_dict().get('Id', 0)
+        
+        # Increment the latest Id by 1
+        new_id = latest_id + 1
+
         if image:
             image_blob = bucket.blob('QueryImages/' + image.filename)
             image_blob.upload_from_string(
@@ -906,12 +1023,13 @@ def support():
         else:
             image_url = None
 
-        db.collection('UserQueries').add({
+        db.collection('UserQueries').document(str(new_id)).set({
             'Name': name,
             'Email/Phone': reach,
             'Bug Title': bug,
             'Detail': detail,
             'Image': image_url,
+            'Id': new_id,
             'timestamp': firestore.SERVER_TIMESTAMP
         })
 
@@ -920,7 +1038,7 @@ def support():
     
     admin_users = get_admin_users()
     # Perform actions specific to the support page for GET requests
-    return render_template('support.html',admin_users=admin_users)
+    return render_template('support.html', admin_users=admin_users)
 
 @app.route('/report', methods=['GET', 'POST'])
 @login_required
@@ -930,6 +1048,15 @@ def report():
         reported = request.form.get('reported')
         description = request.form.get('description')
         image = request.files['image'] if 'image' in request.files else None
+
+        latest_query = db.collection('Reports').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(1).stream()
+        
+        latest_id = 0
+        for doc in latest_query:
+            latest_id = doc.to_dict().get('Id', 0)
+        
+        # Increment the latest Id by 1
+        new_id = latest_id + 1
 
         if image:
             image_blob = bucket.blob('ReportImages/' + image.filename)
@@ -943,11 +1070,12 @@ def report():
         else:
             image_url = None
 
-        db.collection('Reports').add({
+        db.collection('Reports').document(str(new_id)).set({
             'Username': name,
             'ReportedUser': reported,
             'Description': description,
             'Image': image_url,
+            'Id':new_id,
             'timestamp': firestore.SERVER_TIMESTAMP
         })
 

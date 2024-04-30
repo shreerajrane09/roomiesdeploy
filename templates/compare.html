@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <title>Roomies - Roommate Finding Program</title>
-    <link rel="icon" href="{{ url_for('static', filename='assets/icon.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='/assets/icon.png') }}" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/styles/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/profile.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/styles/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/styles/style.css') }}">
     <style>
         h1 {
             text-align: center;
@@ -52,12 +52,15 @@
             color: red; 
             font-size: 1.5em;
         }
+        th{
+            color: black;
+        }
     </style>
 </head>
-<body>
+<body style="margin-bottom: 5%;">
     <nav class="navbar navbar-expand-lg navbar-light">
         <a class="navbar-brand" href="/">
-            <img src="{{ url_for('static', filename='assets/icon.png') }}" height="80">
+            <img src="{{ url_for('static', filename='/assets/icon.png') }}" height="80">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavItems" aria-controls="mainNavItems" aria-label="Toggle main menu" aria-expanded="false">
             <i class="fa fa-bars"></i>
@@ -65,15 +68,14 @@
         <div class="collapse navbar-collapse ml-auto" id="mainNavItems">
             <div class="ml-auto navbar-nav nav">
                 <a class="nav-item nav-link mx-lg-2 mx-1" href="/whyroommatefinder">Why Roomies?</a>
-                <a class="nav-item nav-link mx-1 active" href="/profile">Profile</a>
+                <a class="nav-item nav-link mx-1" href="/profile">Profile</a>
                 <a class="nav-item nav-link mx-1" href="/support">Support</a>
                 <a class="nav-item nav-link mx-1" href="/support" onclick="scrollToFooter()">Contact Us</a>
-                {% if session.get('user') %}
-                    {% if session['user']['username'] in admin_users %}
-                        <a class="nav-item nav-link mx-1" href="/admin">Admin</a>
-                    {% endif %}
-                {% endif %}
-                <a class="nav-item nav-link mx-1" href="/dashboard">Dashboard</a>
+                {% if session.get('user') %} {% if session['user']['username'] in
+          admin_users %}
+          <a class="nav-item nav-link mx-1" href="/admin"> Admin </a>
+          {% endif %} {% endif %}
+                <a class="nav-item nav-link mx-1 active" href="/dashboard">Dashboard</a>
                 <a class="mx-1 btn btn-outline-danger auth-only" id="logoutBtn" href="/logout">Log Out</a>
             </div>
         </div>
@@ -81,6 +83,10 @@
     <main>
         <p class="h1 text-center">Roomies - Comparison</p>
         <hr class="w-75">
+        <p class="text-center small text-info">
+            The match score is calculated using the following matched data coupled with personality evaluation to give you optimized roommate recommendations and ensure a harmonious living environment!
+          </p>
+          <hr class="w-75">
         <div class="row justify-content-center">
             <div class="col-md-10">
                         <table class="rounded-table"> <!-- Table with rounded corners -->
@@ -112,6 +118,8 @@
             </div>
         </div>
     </main>
+    <br>
+    <br>
 </body>
 </html>
 
