@@ -703,7 +703,7 @@ def dashboard():
                 if profile_picture_url is None:
                     profile_picture_url = "https://firebasestorage.googleapis.com/v0/b/roomies-166f5.appspot.com/o/Profile%20Photo%2Favatar.jpg?alt=media&token=bf819735-cee1-400a-ad30-0d7063d473ab"
                 profile_picture_urls.append(profile_picture_url)
-
+        print(recommendations_dashboard)
         user_info_login = session.get('user', {})
         
         user_info_login.update({
