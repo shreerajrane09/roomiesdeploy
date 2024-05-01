@@ -34,12 +34,6 @@
                         <a class="nav-item nav-link mx-lg-2 mx-1" href="/whyroommatefinder">
                             Why Roomies?
                         </a>
-                        {% if session.get('user') %}
-                        <a class="nav-item nav-link mx-1" href="/profile"> Profile </a>
-                        {% endif %}
-                        {% if session.get('user') %}
-                        <a class="nav-item nav-link mx-1" href="/liked"> Liked Profiles </a>
-                        {% endif %}
                         <a class="nav-item nav-link mx-1 active" href="/support">
                             Support
                         </a>
@@ -47,16 +41,22 @@
                             Contact Us
                         </a>
                         {% if session.get('user') %}
+                        <a class="nav-item nav-link mx-1" href="/profile"> Profile </a>
+                        {% endif %}
+                        {% if session.get('user') %}
+                        <a class="nav-item nav-link mx-1" href="/liked"> Liked Profiles </a>
+                        {% endif %}
+                        {% if session.get('user') %}
+                        <a class="nav-item nav-link mx-1" href="/dashboard">
+                          Dashboard
+                      </a>
+                        {% if session.get('user') %}
                             {% if session['user']['username'] in admin_users %}
                                 <a class="nav-item nav-link mx-1" href="/admin">
                                     Admin
                                 </a>
                             {% endif %}
                         {% endif %}
-                        {% if session.get('user') %}
-                        <a class="nav-item nav-link mx-1" href="/dashboard">
-                          Dashboard
-                      </a>
                         <a class="mx-1 btn btn-outline-danger auth-only" id="logoutBtn" href="/logout">
                           Log Out
                       </a>
@@ -130,7 +130,7 @@
                     
                 
                     <div style="text-align: center;">
-                        <div class="g-recaptcha" data-sitekey="6LcomckpAAAAAC2inrxPwPxx-woi2pbsbPgqippU" style="display: inline-block;"></div>
+                        <div class="g-recaptcha" data-sitekey="6LctPhkpAAAAAHF093wlvupE7hgyXQRtdKCfeJqd" style="display: inline-block;"></div>
                     </div>
                     <br>
                     <hr class="d-sm-none d-block w-75 my-2">
