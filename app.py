@@ -1095,5 +1095,7 @@ def report():
     # Perform actions specific to the support page for GET requests
     return render_template('report.html',admin_users=admin_users)
 
+port = int(os.environ.get("PORT",5000))
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=port)
