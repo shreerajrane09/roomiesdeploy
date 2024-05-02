@@ -924,7 +924,10 @@ def get_liked_users():
     # Extract the 'Liked' field from the document snapshot
     liked_users = user_snapshot.to_dict().get('Liked', [])
 
-    return jsonify({'liked_users': liked_users})
+
+    return jsonify({'liked_users': liked_users}) 
+
+
 
 @app.route('/liked')
 @login_required
@@ -1099,3 +1102,4 @@ port = int(os.environ.get("PORT",5000))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=port)
+
